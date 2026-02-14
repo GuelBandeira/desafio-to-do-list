@@ -1,0 +1,43 @@
+import sqlite3 from 'sqlite3';
+
+const sql3 = sqlite3.verbose();
+
+const DB = new sql3.Database('./database.db', sql3.OPEN_CREATE | sql3.OPEN_READWRITE, (err) => {
+   if (err) {
+      console.error('Erro ao conectar ao banco de dados:', err.message);
+   } else {
+      console.log('Conectado ao banco de dados');
+   }
+});
+
+
+let sql = `
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    completed INTEGER DEFAULT 0,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);`;
+
+DB.run(sql, [], (err) => {
+   if (err) {
+      console.error('Erro ao criar tabelas:', err.message);
+      return;
+   }
+});
+
+
+export default DB; 
