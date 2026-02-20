@@ -14,7 +14,7 @@
     - `app.js`: middlewares globais (JSON, CORS, sessão) e registro de rotas.
     - `config/db.js`: conexão SQLite e criação das tabelas.
     - `routes/`: definição dos endpoints HTTP.
-    - `controllers/`: regra de negócio de autenticação, usuários e tarefas.
+    - `controllers/`: definição dos controladores principais (Users, Task e um controlador de sessão).
     - `middleware/`: middleware de autenticação e validações de entrada.
   - Frontend:
     - `src/App.tsx`: definição das rotas (`/login`, `/signup`, `/dashboard`).
