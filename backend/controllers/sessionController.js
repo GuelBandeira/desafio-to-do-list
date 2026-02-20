@@ -1,42 +1,110 @@
 import DB from '../config/db.js';
+import bcrypt from 'bcrypt';
 
 export const loginUser = (req, res) => {
    const { email, password } = req.body;
-   const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
-   const values = [email, password];
-   DB.query(query, values, (err, result) => {
+
+   const query = 'SELECT * FROM users WHERE email = ?';
+   DB.get(query, [email], async (err, user) => {
       if (err) {
          console.error('Erro ao realizar login:', err);
          return res.status(500).json({ error: 'Falha ao realizar login' });
       }
-      if (result.length === 0) {
-         return res.status(401).json({ error: 'Não encontrado nenhum usuário com essa senha ou email' });
+
+      if (!user) {
+         return res.status(401).json({ error: 'Email ou senha incorretos' });
       }
-      req.session.userId = result[0].id;
-      req.session.userName = result[0].name;
-      res.status(200).json({ message: 'Login realizado com sucesso' });
+
+      try {
+         const passwordMatch = await bcrypt.compare(password, user.password);
+
+         if (!passwordMatch) {
+            return res.status(401).json({ error: 'Email ou senha incorretos' });
+         }
+
+         req.session.userId = user.id;
+         req.session.userName = user.name;
+         req.session.userEmail = user.email;
+
+         res.status(200).json({
+            message: 'Login realizado com sucesso',
+            user: {
+               id: user.id,
+               name: user.name,
+               email: user.email
+            }
+         });
+      } catch (error) {
+         console.error('Erro ao processar login:', error);
+         return res.status(500).json({ error: 'Falha ao realizar login' });
+      }
    });
 };
 
 export const logoutUser = (req, res) => {
-
-   req.session.destroy();
-
-   res.status(200).json({ message: 'Logout realizado com sucesso' });
-}
-
-
-
-export const createUser = (req, res) => {
-   const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-   const values = [req.body.name, req.body.email, req.body.password];
-
-   DB.query(query, values, (err, result) => {
+   req.session.destroy((err) => {
       if (err) {
-         console.error('Erro ao cadastrar usuário:', err);
+         console.error('Erro ao fazer logout:', err);
+         return res.status(500).json({ error: 'Falha ao fazer logout' });
+      }
+      res.status(200).json({ message: 'Logout realizado com sucesso' });
+   });
+};
+
+export const createUser = async (req, res) => {
+   const { name, email, password } = req.body;
+
+   // Verificar se o email já existe
+   const checkQuery = 'SELECT * FROM users WHERE email = ?';
+   DB.get(checkQuery, [email], async (err, existingUser) => {
+      if (err) {
+         console.error('Erro ao verificar email:', err);
          return res.status(500).json({ error: 'Falha ao cadastrar usuário' });
       }
 
-      res.status(201).json({ message: 'Usuário cadastrado com sucesso' });
+      if (existingUser) {
+         return res.status(400).json({ error: 'Email já cadastrado' });
+      }
+
+      try {
+         const saltRounds = 10;
+         const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+         const insertQuery = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
+         const values = [name, email, hashedPassword];
+
+         DB.run(insertQuery, values, function (err) {
+            if (err) {
+               console.error('Erro ao cadastrar usuário:', err);
+               return res.status(500).json({ error: 'Falha ao cadastrar usuário' });
+            }
+
+            res.status(201).json({
+               message: 'Usuário cadastrado com sucesso',
+               user: {
+                  id: this.lastID,
+                  name,
+                  email
+               }
+            });
+         });
+      } catch (error) {
+         console.error('Erro ao processar senha:', error);
+         return res.status(500).json({ error: 'Falha ao cadastrar usuário' });
+      }
    });
+};
+
+export const checkAuth = (req, res) => {
+   if (req.session.userId) {
+      return res.status(200).json({
+         authenticated: true,
+         user: {
+            id: req.session.userId,
+            name: req.session.userName,
+            email: req.session.userEmail
+         }
+      });
+   }
+   return res.status(401).json({ authenticated: false });
 };

@@ -11,7 +11,7 @@ const DB = new sql3.Database('./database.db', sql3.OPEN_CREATE | sql3.OPEN_READW
 });
 
 
-let sql = `
+const createUsersTable = `
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+);`;
 
+const createTasksTable = `
 CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(255) NOT NULL,
@@ -32,10 +33,19 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );`;
 
-DB.run(sql, [], (err) => {
+DB.run(createUsersTable, [], (err) => {
    if (err) {
-      console.error('Erro ao criar tabelas:', err.message);
-      return;
+      console.error('Erro ao criar tabela users:', err.message);
+   } else {
+      console.log('Tabela users criada ou já existe');
+   }
+});
+
+DB.run(createTasksTable, [], (err) => {
+   if (err) {
+      console.error('Erro ao criar tabela tasks:', err.message);
+   } else {
+      console.log('Tabela tasks criada ou já existe');
    }
 });
 
