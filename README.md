@@ -3,6 +3,30 @@
 - Criar uma aplicação web completa que permita usuários se cadastrarem, autenticarem, e gerenciarem uma lista de tarefas.
 
 ## Documentação Obrigatória do Código
+- Como executar: 
+  1. Pré-requisitos:
+	  - Node.js 18+ instalado.
+	  - npm instalado.
+  2. Clone o repositório e entre na pasta do projeto:
+	  - `git clone <url-do-repositorio>`
+	  - `cd desafio-to-do-list`
+  3. Instale e rode o backend:
+	  - `cd backend`
+	  - `npm install`
+	  - `npm run dev`
+	  - API disponível em `http://localhost:3000`.
+  4. Em outro terminal, instale e rode o frontend:
+	  - `cd frontend`
+	  - `npm install`
+	  - `npm run dev`
+	  - App disponível em `http://localhost:5173`.
+  5. Fluxo de acesso:
+	  - Abra `http://localhost:5173`.
+	  - Faça cadastro em `/signup`.
+	  - Faça login em `/login` e acesse `/dashboard`.
+
+
+
 - Descrição Geral:
 	- Tecnologias utilizadas:
 	  - Backend: Node.js, Express e SQLite3.
